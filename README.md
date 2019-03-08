@@ -2,19 +2,19 @@
 
 Contains hotkeys for the PowerShell ISE to help with coding and testing. Simply importing this module will add the hotkeys (and the corresponding menu items).
 
-# Caret/Selection Value Hotkeys
+## Caret/Selection Value Hotkeys
 
 Option 1: Put your caret (the blinking cursor) on a line or a variable name. Press the F2 key. If on a variable name, the addon will retrieve the value of the variable and send it to Out-GridView. If not on a variable name, the addon will execute the entire line, working backwards in the file until it finds what it thinks in the beginning of the current pipeline.
 
 Option 2: Highlight some text. Press the F2 key. The addon will execute the highlighted text as a scriptblock and send the result to Out-GridView.
 
-## Hotkeys
+### Hotkeys
 * F2 - Out-GridView
 * Alt+F2 - Select-Object -First 1 | Format-List -Property *
 * Shift+F2 - Out-GridView -PassThru
 * Alt+Shift+F2 - Measure-Object | ForEach-Object Count
 
-## Detection
+### Detection
 Take the following PowerShell code as a sample:
 
 ```powershell
