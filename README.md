@@ -31,7 +31,7 @@ Putting your caret (click anywhere on the line without highlighting any text) on
 ```powershell
 Get-ChildItem | Select-Object -First 1 | Format-List -Property *
 ```
-You'll also see the text "Get-ChildItem C:\Windows" in Cyan preceded by a header. Moving your caret to the second line by pressing the Down Arrow key and pressing Alt+F2 will show that you executed two lines. Using this addon (and assuming you write scripts with pipeline statements on separate lines) you should be able to walk through a pipeline and quickly preview the results at each step.
+You'll also see the text "Get-ChildItem C:\Windows" in Cyan preceded by a header. Moving your caret to the second line by pressing the Down Arrow key and pressing Alt+F2 will show that you executed two lines. Try putting the caret on other lines and try the other hotkeys. Using this addon (and assuming you write scripts with pipeline steps on separate lines) you should be able to walk through a pipeline and quickly preview the results at each step.
 
 You'll notice if you put your caret inside of the ForEach-Object loop you'll only execute the one line in the loop. If you put your caret on } on the last line you'll execute everything. Just look at the "Executing ISE Caret/Selection Value" text to get a feel for how it works. Also remember that highlighting any text will execute just the highlighted text, and if your caret is on a variable name you'll get just the contents of the variable.
 
