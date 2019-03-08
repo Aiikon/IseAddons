@@ -6,6 +6,7 @@ Function Get-IseAddonsCaretValue
     Write-Host -ForegroundColor Cyan ("="*100)
     Write-Host -ForegroundColor Cyan "Executing ISE Caret/Selection Value"
     Write-Host -ForegroundColor Cyan ("="*100)
+    Write-Host ""
 
     # If text is currently highlighted, execute this code
     $selectedText = $psISE.CurrentFile.Editor.SelectedText
@@ -17,6 +18,7 @@ Function Get-IseAddonsCaretValue
             ForEach-Object Trim
         $result.Title = $result.Title -join ' '
         Write-Host -ForegroundColor Cyan $result.Code
+        Write-Host ""
         $result.Value = & ([ScriptBlock]::Create($selectedText))
         return $result
     }
@@ -34,6 +36,7 @@ Function Get-IseAddonsCaretValue
         # Return the value of the variable if the caret is on a variable name
         $result.Code = "`$$($caretToken.Content)"
         Write-Host -ForegroundColor Cyan $result.Code
+        Write-Host ""
         $result.Value = Get-Variable -Name $caretToken.Content -ValueOnly |
             ForEach-Object { $_ } # This will force expansion of an array
         $result.Title = "Value of `$$($caretToken.Content)"
@@ -99,6 +102,7 @@ Function Get-IseAddonsCaretValue
     $result.Code = $codeLineList -join "`r`n" -replace "[ \t\|]+\Z" -replace "(?m)\A *\$.+= ?"
 
     Write-Host -ForegroundColor Cyan $result.Code
+    Write-Host ""
     $result.Value = & ([ScriptBlock]::Create($result.Code))
     return $result
 }
@@ -107,7 +111,7 @@ Function Get-IseAddonsCaretValue
     trap { continue } # Easier to just ignore all exceptions here
 
     $psISE.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("Get Caret/Selected Value (First 1)",
-        { Get-IseAddonsCaretValue | ForEach-Object Value | Select-Object -First 1 | Format-List },
+        { Get-IseAddonsCaretValue | ForEach-Object Value | Select-Object -First 1 | Format-List -Property * },
         "Alt+F2"
     )
 
