@@ -1,6 +1,6 @@
 Function Get-IseAddonsCaretValue
 {
-    $result = 1 | Select-Object Title, Code, Value
+    $private:result = 1 | Select-Object Title, Code, Value
     $result.Title = 'Value at Caret'
 
     Write-Host -ForegroundColor Cyan ("="*100)
@@ -9,7 +9,7 @@ Function Get-IseAddonsCaretValue
     Write-Host ""
 
     # If text is currently highlighted, execute this code
-    $selectedText = $psISE.CurrentFile.Editor.SelectedText
+    $private:selectedText = $psISE.CurrentFile.Editor.SelectedText
     if ($selectedText)
     {
         $result.Code = $selectedText
@@ -24,10 +24,10 @@ Function Get-IseAddonsCaretValue
     }
 
     # Try to find out if the caret is currently on a variable name
-    $column = $psISE.CurrentFile.Editor.CaretColumn
-    $parseErrors = $null
-    $tokenList = [System.Management.Automation.PSParser]::Tokenize($psISE.CurrentFile.Editor.CaretLineText, [ref]$parseErrors)
-    $caretToken = $tokenList |
+    $private:column = $psISE.CurrentFile.Editor.CaretColumn
+    $private:parseErrors = $null
+    $private:tokenList = [System.Management.Automation.PSParser]::Tokenize($psISE.CurrentFile.Editor.CaretLineText, [ref]$parseErrors)
+    $private:caretToken = $tokenList |
         Where-Object StartColumn -le $column |
         Where-Object EndColumn -ge $column |
         Select-Object -First 1
@@ -37,28 +37,28 @@ Function Get-IseAddonsCaretValue
         $result.Code = "`$$($caretToken.Content)"
         Write-Host -ForegroundColor Cyan $result.Code
         Write-Host ""
-        $result.Value = Get-Variable -Name $caretToken.Content -ValueOnly |
+        $result.Value = & { Param($_) Get-Variable -Name $_ -ValueOnly } $caretToken.Content |
             ForEach-Object { $_ } # This will force expansion of an array
         $result.Title = "Value of `$$($caretToken.Content)"
         return $result
     }
     
     # Otherwise work backwards to find the beginning of the current pipeline
-    $fileLineList = $psISE.CurrentFile.Editor.Text -split "`r`n"
-    $lineNumber = $psISE.CurrentFile.Editor.CaretLine
+    $private:fileLineList = $psISE.CurrentFile.Editor.Text -split "`r`n"
+    $private:lineNumber = $psISE.CurrentFile.Editor.CaretLine
 
-    $codeLineList = New-Object System.Collections.Generic.List[string]
-    $thisLine = $fileLineList[$lineNumber-1].TrimEnd().TrimEnd("|").TrimEnd()
+    $private:codeLineList = New-Object System.Collections.Generic.List[string]
+    $private:thisLine = $fileLineList[$lineNumber-1].TrimEnd().TrimEnd("|").TrimEnd()
     $lineNumber -= 1
     $codeLineList.Add($thisLine)
 
     # Keep track of how deep in a scriptblock we are to stay at the same depth
-    $blockUp = $thisLine.Length - $thisLine.Replace('}', '').Length
-    $blockDown = $thisLine.Length - $thisLine.Replace('{', '').Length
-    $blockCount = $blockUp - $blockDown
+    $private:blockUp = $thisLine.Length - $thisLine.Replace('}', '').Length
+    $private:blockDown = $thisLine.Length - $thisLine.Replace('{', '').Length
+    $private:blockCount = $blockUp - $blockDown
 
     # Keep track of the type of Here-String we're in
-    $inHereString = if ($thisLine.StartsWith("'@")) { "'" }
+    $private:inHereString = if ($thisLine.StartsWith("'@")) { "'" }
     elseif ($thisLine.StartsWith('"@')) { '"' }
 
     # Loop backwards as long as we still have lines to go until we appear to be at the beginning of the statement.
