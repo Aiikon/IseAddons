@@ -52,50 +52,24 @@ Function Get-IseAddonsCaretValue
     $lineNumber -= 1
     $codeLineList.Add($thisLine)
 
-    # Keep track of how deep in a scriptblock we are to stay at the same depth
-    $private:blockUp = $thisLine.Length - $thisLine.Replace('}', '').Length
-    $private:blockDown = $thisLine.Length - $thisLine.Replace('{', '').Length
-    $private:blockCount = $blockUp - $blockDown
-
-    # Keep track of the type of Here-String we're in
-    $private:inHereString = if ($thisLine.StartsWith("'@")) { "'" }
-    elseif ($thisLine.StartsWith('"@')) { '"' }
-
     # Loop backwards as long as we still have lines to go until we appear to be at the beginning of the statement.
     # We'll know we're at the beginning when the PREVIOUS line in the file doesn't end with a pipe, comma, backtick,
-    # or open curly bracket, and we're not currently inside a Here-String or a ScriptBlock.
+    # or open curly bracket, and the scriptblock is valid
     while ($lineNumber -gt 0)
     {
         $thisLine = $fileLineList[$lineNumber-1].TrimEnd()
-        if (!$inHereString)
-        {
-            $inHereString = if ($thisLine.StartsWith("'@")) { "'" }
-            elseif ($thisLine.StartsWith('"@')) { '"' }
-        }
-        if ($inHereString)
-        {
-            if ($thisLine.Contains("@$inHereString")) { $inHereString = $false }
-            $codeLineList.Add($thisLine)
-            $lineNumber -= 1
-            continue
-        }
-        $continue = $thisLine.EndsWith("|") -or $thisLine.EndsWith('`') -or $thisLine.EndsWith(',') -or $thisLine.EndsWith('{')
+        $continue = $thisLine.EndsWith("|") -or $thisLine.EndsWith('`') -or $thisLine.EndsWith(',') -or
+            (!$(try { [ScriptBlock]::Create($codeLineList -join "`r`n") } catch {}))
         # Skip over lines with comments
         if ($thisLine.Trim().StartsWith('#'))
         {
             $lineNumber -= 1
             continue
         }
-        $blockUp = $thisLine.Length - $thisLine.Replace('}', '').Length
-        $blockDown = $thisLine.Length - $thisLine.Replace('{', '').Length
-        $blockCount = $blockCount + $blockUp - $blockDown
-        if ((!$continue -and $blockCount -le 0) -or $blockCount -lt 0) { break }
-        $codeLineList.Add($thisLine)
+        if (!$continue) { break }
+        $codeLineList.Insert(0, $fileLineList[$lineNumber-1])
         $lineNumber -= 1
     }
-
-    # Put the code back in order
-    $codeLineList.Reverse()
 
     $result.Title = $codeLineList | Select-Object -Last 10 | ForEach-Object Trim
     $result.Title = $result.Title -join ' '
